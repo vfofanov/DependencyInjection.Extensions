@@ -3,6 +3,8 @@ Provides name-based registrations to Microsoft.Extensions.DependencyInjection
 
 See origin https://stackoverflow.com/a/39276306/2528649
 
+>Changes in fork: Use TKey generic parameter instead of string
+
 ## Usage example
 
 In order to register your services you'll need to add following code to your Startup class:
