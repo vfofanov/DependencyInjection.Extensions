@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Neleus.DependencyInjection.Extensions
@@ -9,10 +10,12 @@ namespace Neleus.DependencyInjection.Extensions
         /// Entry point for name-based registrations. This method should be called in order to start building
         /// named registrations for <typeparamref name="TService"/>"/>
         /// </summary>
-        /// <returns><see cref="ServicesByNameBuilder&lt;TService&gt;"/> which is used to build multiple named registrations</returns>
-        public static ServicesByNameBuilder<TService> AddByName<TService>(this IServiceCollection services)
+        /// <param name="services">Service collection</param>
+        /// <param name="keyComparer"></param>
+        /// <returns><see cref="ServicesByKeyBuilder{TKey,TService}"/> which is used to build multiple named registrations</returns>
+        public static ServicesByKeyBuilder<string, TService> AddByName<TService>(this IServiceCollection services, IEqualityComparer<string> keyComparer=null)
         {
-            return new ServicesByNameBuilder<TService>(services, new NameBuilderSettings());
+            return AddByKey<string,TService>(services, keyComparer);
         }
 
         /// <summary>
@@ -20,19 +23,11 @@ namespace Neleus.DependencyInjection.Extensions
         /// named registrations for <typeparamref name="TService"/>"/>
         /// </summary>
         /// <param name="services">Service collection</param>
-        /// <param name="settings">Customization settings</param>
-        /// <returns><see cref="ServicesByNameBuilder&lt;TService&gt;"/> which is used to build multiple named registrations</returns>
-        public static ServicesByNameBuilder<TService> AddByName<TService>(this IServiceCollection services, NameBuilderSettings settings)
+        /// <param name="keyComparer"></param>
+        /// <returns><see cref="ServicesByKeyBuilder{TKey,TService}"/> which is used to build multiple named registrations</returns>
+        public static ServicesByKeyBuilder<TKey, TService> AddByKey<TKey, TService>(this IServiceCollection services, IEqualityComparer<TKey> keyComparer=null)
         {
-            return new ServicesByNameBuilder<TService>(services, settings);
-        }
-
-        /// <summary>
-        /// Synonym of <see cref="GetServiceByName{TService}"/>. It is recommended to use <see cref="GetServiceByName{TService}"/> as a better naming convention.
-        /// </summary>
-        public static TService GetByName<TService>(this IServiceProvider provider, string name)
-        {
-            return provider.GetServiceByName<TService>(name);
+            return new ServicesByKeyBuilder<TKey,TService>(services, keyComparer);
         }
 
         /// <summary>
@@ -45,11 +40,25 @@ namespace Neleus.DependencyInjection.Extensions
         /// <returns></returns>
         public static TService GetServiceByName<TService>(this IServiceProvider provider, string name)
         {
-            var factory = provider.GetService<IServiceByNameFactory<TService>>();
-            if (factory == null)
-                throw new InvalidOperationException($"The factory {typeof(IServiceByNameFactory<TService>)} is not registered. Please use {nameof(FactoryServiceCollectionExtensions)}.{nameof(AddByName)}() to register names.");
+            return provider.GetServiceByKey<string, TService>(name);
+        }
 
-            return factory.GetByName(name);
+        /// <summary>
+        /// Provides instances of named registration. It is intended to be used in factory registrations, see example.
+        /// </summary>
+        /// <code>
+        /// _container.AddTransient&lt;ClientA&gt;(s =&gt; new ClientA(s.GetByName&lt;IEnumerable&lt;int&gt;&gt;(&quot;list&quot;)));
+        /// _container.AddTransient&lt;ClientB&gt;(s =&gt; new ClientB(s.GetByName&lt;IEnumerable&lt;int&gt;&gt;(&quot;hashSet&quot;)));
+        /// </code>
+        /// <returns></returns>
+        public static TService GetServiceByKey<TKey, TService>(this IServiceProvider provider, TKey key)
+        {
+            var factory = provider.GetService<IServiceByKeyFactory<TKey, TService>>();
+            if (factory == null)
+            {
+                throw new InvalidOperationException($"The factory {typeof(IServiceByKeyFactory<TKey, TService>)} is not registered. Please use {nameof(FactoryServiceCollectionExtensions)}.{nameof(AddByKey)}() to register names.");
+            }
+            return factory.GetByKey(key);
         }
     }
 }

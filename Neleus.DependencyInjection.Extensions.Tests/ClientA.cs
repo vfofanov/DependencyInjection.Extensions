@@ -3,7 +3,7 @@
 namespace Neleus.DependencyInjection.Extensions.Tests
 {
     /// <summary>
-    /// This client not aware of name and has no dependency on <see cref="IServiceByNameFactory"/>. The IEnumerable<int> dependency injected by IoC factory registration.
+    /// This client not aware of name and has no dependency on <see cref="IServiceByKeyFactory{TService}"/>. The IEnumerable<int> dependency injected by IoC factory registration.
     /// </summary>
     public class ClientA
     {

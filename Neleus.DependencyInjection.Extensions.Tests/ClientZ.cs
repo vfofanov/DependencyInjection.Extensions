@@ -9,9 +9,9 @@ namespace Neleus.DependencyInjection.Extensions.Tests
     {
         public IEnumerable<int> Dependency { get; private set; }
 
-        public ClientZ(IServiceByNameFactory<IEnumerable<int>> factory)
+        public ClientZ(IServiceByKeyFactory<string, IEnumerable<int>> factory)
         {
-            Dependency = factory.GetByName("hashSet");
+            Dependency = factory.GetByKey("hashSet");
         }
     }
 }

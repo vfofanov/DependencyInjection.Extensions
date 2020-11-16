@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,7 +13,7 @@ namespace Neleus.DependencyInjection.Extensions.Tests
         [TestInitialize]
         public void Init()
         {
-            _container = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            _container = new ServiceCollection();
         }
 
         [TestMethod]
@@ -29,10 +30,10 @@ namespace Neleus.DependencyInjection.Extensions.Tests
             var serviceProvider = _container.BuildServiceProvider();
 
             // direct resolution by calling GetByName
-            var list = serviceProvider.GetService<IServiceByNameFactory<IEnumerable<int>>>()
-                .GetByName("list");
-            var hashSet = serviceProvider.GetService<IServiceByNameFactory<IEnumerable<int>>>()
-                .GetByName("hashSet");
+            var list = serviceProvider.GetService<IServiceByKeyFactory<string, IEnumerable<int>>>()
+                .GetByKey("list");
+            var hashSet = serviceProvider.GetService<IServiceByKeyFactory<string, IEnumerable<int>>>()
+                .GetByKey("hashSet");
 
             Assert.AreEqual(typeof(List<int>), list.GetType());
             Assert.AreEqual(typeof(HashSet<int>), hashSet.GetType());
@@ -44,15 +45,15 @@ namespace Neleus.DependencyInjection.Extensions.Tests
             _container.AddTransient<List<int>>();
             _container.AddTransient<HashSet<int>>();
 
-            _container.AddByName<IEnumerable<int>>()
+            _container.AddByKey<string, IEnumerable<int>>()
                 .Add<List<int>>("list")
                 .Add<HashSet<int>>("hashSet")
                 .Build();
 
             //The named services are resolved by IoC container and the client is abstracted from the
             //dependency resolution
-            _container.AddTransient<ClientA>(s => new ClientA(s.GetServiceByName<IEnumerable<int>>("list")));
-            _container.AddTransient<ClientB>(s => new ClientB(s.GetServiceByName<IEnumerable<int>>("hashSet")));
+            _container.AddTransient<ClientA>(s => new ClientA(s.GetServiceByKey<string, IEnumerable<int>>("list")));
+            _container.AddTransient<ClientB>(s => new ClientB(s.GetServiceByKey<string, IEnumerable<int>>("hashSet")));
 
             var serviceProvider = _container.BuildServiceProvider();
 
@@ -69,7 +70,7 @@ namespace Neleus.DependencyInjection.Extensions.Tests
             _container.AddTransient<List<int>>();
             _container.AddTransient<HashSet<int>>();
 
-            _container.AddByName<IEnumerable<int>>()
+            _container.AddByKey<string,IEnumerable<int>>()
                 .Add<List<int>>("list")
                 .Add<HashSet<int>>("hashSet")
                 .Build();
@@ -90,10 +91,7 @@ namespace Neleus.DependencyInjection.Extensions.Tests
             _container.AddTransient<List<int>>();
             _container.AddTransient<HashSet<int>>();
 
-            _container.AddByName<IEnumerable<int>>(new NameBuilderSettings()
-                {
-                    CaseInsensitiveNames = true
-                })
+            _container.AddByKey<string,IEnumerable<int>>(StringComparer.OrdinalIgnoreCase)
                 .Add<List<int>>("list")
                 .Add<HashSet<int>>("hashSet")
                 .Build();
@@ -101,10 +99,10 @@ namespace Neleus.DependencyInjection.Extensions.Tests
             var serviceProvider = _container.BuildServiceProvider();
 
             // direct resolution by calling GetByName
-            var list = serviceProvider.GetService<IServiceByNameFactory<IEnumerable<int>>>()
-                .GetByName("LiSt");
-            var hashSet = serviceProvider.GetService<IServiceByNameFactory<IEnumerable<int>>>()
-                .GetByName("HASHSET");
+            var list = serviceProvider.GetService<IServiceByKeyFactory<string,IEnumerable<int>>>()
+                .GetByKey("LiSt");
+            var hashSet = serviceProvider.GetService<IServiceByKeyFactory<string,IEnumerable<int>>>()
+                .GetByKey("HASHSET");
 
             Assert.AreEqual(typeof(List<int>), list.GetType());
             Assert.AreEqual(typeof(HashSet<int>), hashSet.GetType());

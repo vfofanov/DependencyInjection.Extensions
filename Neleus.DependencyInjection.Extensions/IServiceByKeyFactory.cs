@@ -3,12 +3,14 @@
     /// <summary>
     /// Provides instances of registered services by name
     /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+
     /// <typeparam name="TService"></typeparam>
-    public interface IServiceByNameFactory<out TService>
+    public interface IServiceByKeyFactory<in TKey, out TService>
     {
         /// <summary>
         /// Provides instance of registered service by name
         /// </summary>
-        TService GetByName(string name);
+        TService GetByKey(TKey key);
     }
 }
